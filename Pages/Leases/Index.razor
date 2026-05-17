@@ -1,0 +1,81 @@
+@page "/leases"
+@inject ILeaseService LeaseService
+@inject NavigationManager Nav
+@inject AuthService Auth
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>Leases - ApartaManager</PageTitle>
+
+<div class="am-page-header">📋 Leases</div>
+<div class="am-page-sub">Track all active and expired leases</div>
+
+<div class="am-card">
+    <div class="am-card-title">
+        All Leases
+        <a href="/leases/create" class="am-btn">+ New Lease</a>
+    </div>
+
+    @if (leases is null)
+    {
+        <div class="am-spinner">Loading...</div>
+    }
+    else if (!leases.Any())
+    {
+        <p style="color:#8a9ac0;font-size:13px;">No leases found. <a href="/leases/create" class="am-link">Create one!</a></p>
+    }
+    else
+    {
+        <table class="am-tbl">
+            <thead><tr><th>Unit</th><th>Tenant</th><th>Start</th><th>End</th><th>Rent/Month</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var l in leases)
+            {
+                <tr>
+                    <td><strong>@l.Apartment?.UnitNumber</strong></td>
+                    <td>@l.Tenant?.FullName</td>
+                    <td>@l.StartDate.ToString("dd/MM/yyyy")</td>
+                    <td>@l.EndDate.ToString("dd/MM/yyyy")</td>
+                    <td>PKR @l.MonthlyRent.ToString("N0")</td>
+                    <td>
+                        @if (l.IsActive) { <span class="am-bdg am-bdg-g">Active</span> }
+                        else { <span class="am-bdg am-bdg-a">Ended</span> }
+                    </td>
+                    <td>
+                        <span class="am-link" style="color:#c02020;" @onclick="() => ConfirmDelete(l)">Delete</span>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (toDelete is not null)
+{
+    <div style="position:fixed;inset:0;background:rgba(30,42,74,0.3);display:flex;align-items:center;justify-content:center;z-index:999;">
+        <div class="am-card" style="max-width:380px;width:100%;margin:0;">
+            <div class="am-card-title" style="color:#c02020;">⚠️ Confirm Delete</div>
+            <p style="font-size:13px;color:#3a4a70;margin-bottom:16px;">Delete lease for <strong>@toDelete.Apartment?.UnitNumber</strong>?</p>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="am-btn am-btn-outline" @onclick="() => toDelete = null">Cancel</button>
+                <button class="am-btn am-btn-danger" @onclick="DeleteConfirmed">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    List<Lease>? leases;
+    Lease? toDelete;
+
+    protected override async Task OnInitializedAsync() =>
+        leases = await LeaseService.GetAllAsync();
+
+    void ConfirmDelete(Lease l) => toDelete = l;
+
+    async Task DeleteConfirmed()
+    {
+        if (toDelete is not null) { await LeaseService.DeleteAsync(toDelete.Id); leases = await LeaseService.GetAllAsync(); toDelete = null; }
+    }
+}

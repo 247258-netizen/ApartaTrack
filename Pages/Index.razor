@@ -1,0 +1,68 @@
+@page "/"
+@inject IApartmentService ApartmentService
+@inject ITenantService TenantService
+@inject ILeaseService LeaseService
+@inject IPaymentService PaymentService
+@inject IMaintenanceService MaintenanceSvc
+@inject INotificationService NotifSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Dashboard - ApartaManager</PageTitle>
+
+@if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+
+<div class="am-page-header">📊 Dashboard</div>
+<div class="am-page-sub">Welcome back, <strong>@Auth.CurrentUser?.FullName</strong> 👋</div>
+
+@if (isLoading)
+{
+    <div class="am-spinner">Loading...</div>
+}
+else
+{
+    <div class="am-stats">
+        <div class="am-stat"><div class="am-stat-ico">🏠</div><div><div class="am-stat-lbl">Total Apartments</div><div class="am-stat-val">@totalApartments</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">✅</div><div><div class="am-stat-lbl">Available Units</div><div class="am-stat-val">@availableApartments</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">👥</div><div><div class="am-stat-lbl">Total Tenants</div><div class="am-stat-val">@totalTenants</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">💰</div><div><div class="am-stat-lbl">Rent Collected</div><div class="am-stat-val" style="font-size:14px;">PKR @totalCollected.ToString("N0")</div></div></div>
+    </div>
+    <div class="am-stats">
+        <div class="am-stat"><div class="am-stat-ico">🔧</div><div><div class="am-stat-lbl">Pending Maintenance</div><div class="am-stat-val">@pendingMaintenance</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">🔔</div><div><div class="am-stat-lbl">Notifications</div><div class="am-stat-val">@unreadNotifications</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">📋</div><div><div class="am-stat-lbl">Active Leases</div><div class="am-stat-val">@activeLeases</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">⚠️</div><div><div class="am-stat-lbl">Overdue Payments</div><div class="am-stat-val">0</div></div></div>
+    </div>
+
+    <div class="am-card">
+        <div class="am-card-title">Quick Actions</div>
+        <div class="am-actions">
+            <a href="/apartments/create" class="am-act"><div class="am-act-ico">🏠</div><div class="am-act-lbl">Add Apartment</div></a>
+            <a href="/tenants/create" class="am-act"><div class="am-act-ico">👤</div><div class="am-act-lbl">Add Tenant</div></a>
+            <a href="/leases/create" class="am-act"><div class="am-act-ico">📋</div><div class="am-act-lbl">New Lease</div></a>
+            <a href="/payments/create" class="am-act"><div class="am-act-ico">💳</div><div class="am-act-lbl">Payment</div></a>
+            <a href="/maintenance/create" class="am-act"><div class="am-act-ico">🔧</div><div class="am-act-lbl">Maintenance</div></a>
+            <a href="/reports" class="am-act"><div class="am-act-ico">📈</div><div class="am-act-lbl">Reports</div></a>
+        </div>
+    </div>
+}
+
+@code {
+    bool isLoading = true;
+    int totalApartments, availableApartments, totalTenants, activeLeases, pendingMaintenance, unreadNotifications;
+    decimal totalCollected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        totalApartments     = await ApartmentService.GetTotalCountAsync();
+        availableApartments = (await ApartmentService.GetAvailableAsync()).Count;
+        totalTenants        = await TenantService.GetTotalCountAsync();
+        activeLeases        = await LeaseService.GetTotalCountAsync();
+        totalCollected      = await PaymentService.GetTotalCollectedAsync();
+        pendingMaintenance  = await MaintenanceSvc.GetPendingCountAsync();
+        unreadNotifications = await NotifSvc.GetUnreadCountAsync();
+        isLoading = false;
+    }
+}

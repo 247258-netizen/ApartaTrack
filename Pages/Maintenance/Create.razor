@@ -1,0 +1,83 @@
+@page "/maintenance/create"
+@inject IMaintenanceService MaintenanceSvc
+@inject IApartmentService ApartmentSvc
+@inject ITenantService TenantSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>New Maintenance Request - ApartaManager</PageTitle>
+
+<a href="/maintenance" class="am-back-link">← Back to Maintenance</a>
+<div class="am-page-header">🔧 New Maintenance Request</div>
+<div class="am-page-sub">Submit a maintenance request</div>
+
+<div class="am-form-card">
+    <EditForm Model="request" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="am-err-box" />
+
+        <label class="am-f-lbl">Apartment</label>
+        <InputSelect @bind-Value="request.ApartmentId" class="am-f-inp">
+            <option value="0">-- Select Apartment --</option>
+            @foreach (var a in apartments)
+            { <option value="@a.Id">@a.UnitNumber</option> }
+        </InputSelect>
+
+        <label class="am-f-lbl">Tenant (Optional)</label>
+        <InputSelect @bind-Value="request.TenantId" class="am-f-inp">
+            <option value="">-- Select Tenant --</option>
+            @foreach (var t in tenants)
+            { <option value="@t.Id">@t.FullName</option> }
+        </InputSelect>
+
+        <label class="am-f-lbl">Issue Title</label>
+        <InputText @bind-Value="request.Title" class="am-f-inp" placeholder="e.g. Broken AC, Water leak" />
+
+        <label class="am-f-lbl">Description</label>
+        <InputTextArea @bind-Value="request.Description" class="am-f-inp" rows="3" style="resize:vertical;" />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label class="am-f-lbl">Priority</label>
+                <InputSelect @bind-Value="request.Priority" class="am-f-inp">
+                    @foreach (var p in Enum.GetValues<MaintenancePriority>())
+                    { <option value="@p">@p</option> }
+                </InputSelect>
+            </div>
+            <div>
+                <label class="am-f-lbl">Estimated Cost (PKR)</label>
+                <InputNumber @bind-Value="request.EstimatedCost" class="am-f-inp" />
+            </div>
+        </div>
+
+        <label class="am-f-lbl">Notes</label>
+        <InputTextArea @bind-Value="request.Notes" class="am-f-inp" rows="2" style="resize:vertical;" />
+
+        <button type="submit" class="am-btn am-btn-lg" disabled="@isSaving">
+            @(isSaving ? "Submitting..." : "💾 Submit Request")
+        </button>
+    </EditForm>
+</div>
+
+@code {
+    MaintenanceRequest request = new() { RequestDate = DateTime.Today };
+    List<Apartment> apartments = new();
+    List<Tenant> tenants = new();
+    bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        apartments = await ApartmentSvc.GetAllAsync();
+        tenants = await TenantSvc.GetAllAsync();
+    }
+
+    async Task HandleSubmit()
+    {
+        isSaving = true;
+        await MaintenanceSvc.CreateAsync(request);
+        Nav.NavigateTo("/maintenance");
+    }
+}

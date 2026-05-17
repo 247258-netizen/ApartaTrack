@@ -1,0 +1,118 @@
+@page "/users"
+@inject AuthService Auth
+@inject UserService UserSvc
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Users - ApartaManager</PageTitle>
+
+@if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+@if (!Auth.IsAdmin()) { <div class="am-err-box" style="margin-top:20px;">Access Denied. Admins only.</div> return; }
+
+<div class="am-page-header">🛡️ User Management</div>
+<div class="am-page-sub">Manage system users and permissions</div>
+
+<div class="am-card">
+    <div class="am-card-title">
+        All Users
+        <button class="am-btn" @onclick="() => showForm = true">+ Add User</button>
+    </div>
+
+    @if (users == null)
+    {
+        <div class="am-spinner">Loading...</div>
+    }
+    else
+    {
+        <table class="am-tbl">
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var u in users)
+            {
+                <tr>
+                    <td><strong>@u.FullName</strong></td>
+                    <td>@u.Username</td>
+                    <td>@u.Email</td>
+                    <td>
+                        @switch (u.Role)
+                        {
+                            case UserRole.Admin:
+                                <span class="am-bdg am-bdg-r">Admin</span>
+                                break;
+                            case UserRole.Manager:
+                                <span class="am-bdg am-bdg-a">Manager</span>
+                                break;
+                            default:
+                                <span class="am-bdg am-bdg-b">@u.Role</span>
+                                break;
+                        }
+                    </td>
+                    <td>
+                        @if (u.IsActive) { <span class="am-bdg am-bdg-g">Active</span> }
+                        else { <span class="am-bdg" style="background:#eee;color:#888;">Inactive</span> }
+                    </td>
+                    <td>@(u.LastLogin?.ToString("dd/MM/yyyy HH:mm") ?? "Never")</td>
+                    <td>
+                        <span class="am-link" @onclick="() => ToggleActive(u.Id)">@(u.IsActive ? "Disable" : "Enable")</span>
+                        @if (u.Id != 1)
+                        {
+                            <span style="margin:0 4px;color:#dde4ff;">|</span>
+                            <span class="am-link" style="color:#c02020;" @onclick="() => DeleteUser(u.Id)">Delete</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (showForm)
+{
+    <div style="position:fixed;inset:0;background:rgba(30,42,74,0.3);display:flex;align-items:center;justify-content:center;z-index:999;">
+        <div class="am-card" style="max-width:420px;width:100%;margin:0;">
+            <div class="am-card-title">➕ Add New User</div>
+            <label class="am-f-lbl">Full Name</label>
+            <input @bind="newUser.FullName" class="am-f-inp" placeholder="Full name" />
+            <label class="am-f-lbl">Username</label>
+            <input @bind="newUser.Username" class="am-f-inp" placeholder="Username" />
+            <label class="am-f-lbl">Email</label>
+            <input @bind="newUser.Email" class="am-f-inp" type="email" placeholder="email@example.com" />
+            <label class="am-f-lbl">Password</label>
+            <input @bind="newPassword" class="am-f-inp" type="password" placeholder="Password" />
+            <label class="am-f-lbl">Role</label>
+            <select @bind="newUser.Role" class="am-f-inp">
+                @foreach (var r in Enum.GetValues<UserRole>())
+                { <option value="@r">@r</option> }
+            </select>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="am-btn am-btn-outline" @onclick="() => showForm = false">Cancel</button>
+                <button class="am-btn" @onclick="SaveUser">💾 Save User</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    List<ApplicationUser>? users;
+    bool showForm = false;
+    ApplicationUser newUser = new();
+    string newPassword = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) Nav.NavigateTo("/login");
+        else users = await UserSvc.GetAllAsync();
+    }
+
+    async Task SaveUser()
+    {
+        if (string.IsNullOrWhiteSpace(newUser.FullName) || string.IsNullOrWhiteSpace(newPassword)) return;
+        await UserSvc.CreateAsync(newUser, newPassword);
+        users = await UserSvc.GetAllAsync();
+        newUser = new(); newPassword = ""; showForm = false;
+    }
+
+    async Task ToggleActive(int id) { await UserSvc.ToggleActiveAsync(id); users = await UserSvc.GetAllAsync(); }
+    async Task DeleteUser(int id) { await UserSvc.DeleteAsync(id); users = await UserSvc.GetAllAsync(); }
+}

@@ -1,0 +1,52 @@
+@inject AuthService Auth
+@inject INotificationService NotifSvc
+@inject NavigationManager Nav
+@implements IDisposable
+@using ApartaTrack.Models
+
+<nav class="am-nav">
+    <a class="am-nav-brand" href="/">🏢 ApartaManager</a>
+    @if (Auth.IsLoggedIn)
+    {
+        <div class="am-nav-links">
+            <NavLink class="am-nl" href="/" Match="NavLinkMatch.All">📊 Dashboard</NavLink>
+            <NavLink class="am-nl" href="/apartments">🏠 Apartments</NavLink>
+            <NavLink class="am-nl" href="/tenants">👥 Tenants</NavLink>
+            <NavLink class="am-nl" href="/leases">📋 Leases</NavLink>
+            <NavLink class="am-nl" href="/payments">💳 Payments</NavLink>
+            <NavLink class="am-nl" href="/maintenance">🔧 Maintenance</NavLink>
+            <NavLink class="am-nl" href="/reports">📈 Reports</NavLink>
+            <NavLink class="am-nl" href="/notifications">🔔 Notifications</NavLink>
+            @if (Auth.IsAdmin())
+            {
+                <NavLink class="am-nl" href="/users">🛡️ Users</NavLink>
+            }
+        </div>
+        <div class="am-nav-right">
+            🔔<span class="am-badge">@(unreadCount > 9 ? "9+" : unreadCount.ToString())</span>
+            👤 @Auth.CurrentUser?.FullName
+            <span class="am-role">@Auth.CurrentUser?.Role</span>
+            <span class="am-link" @onclick="Logout">Logout</span>
+        </div>
+    }
+</nav>
+
+@code {
+    int unreadCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.OnAuthStateChanged += OnAuthChanged;
+        if (Auth.IsLoggedIn) unreadCount = await NotifSvc.GetUnreadCountAsync();
+    }
+
+    async void OnAuthChanged()
+    {
+        if (Auth.IsLoggedIn) unreadCount = await NotifSvc.GetUnreadCountAsync();
+        else unreadCount = 0;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    void Logout() { Auth.Logout(); Nav.NavigateTo("/login"); }
+    public void Dispose() => Auth.OnAuthStateChanged -= OnAuthChanged;
+}

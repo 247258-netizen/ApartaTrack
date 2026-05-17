@@ -1,0 +1,95 @@
+@page "/tenants"
+@inject ITenantService TenantService
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Tenants - ApartaManager</PageTitle>
+@if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+
+<div class="am-page-header">👥 Tenants</div>
+<div class="am-page-sub">View and manage all tenants</div>
+
+<div class="am-card">
+    <div class="am-card-title">
+        All Tenants
+        <a href="/tenants/create" class="am-btn">+ Add Tenant</a>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input @bind="searchText" @bind:after="ApplyFilter" class="am-f-inp" style="margin-bottom:0;flex:1;" placeholder="Search by name, email or CNIC..." />
+    </div>
+
+    @if (filtered == null)
+    {
+        <div class="am-spinner">Loading...</div>
+    }
+    else if (!filtered.Any())
+    {
+        <p style="color:#8a9ac0;font-size:13px;">No tenants found.</p>
+    }
+    else
+    {
+        <table class="am-tbl">
+            <thead><tr><th>Name</th><th>CNIC</th><th>Phone</th><th>Email</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var t in filtered)
+            {
+                <tr>
+                    <td><strong>@t.FullName</strong></td>
+                    <td>@t.NationalId</td>
+                    <td>@t.Phone</td>
+                    <td>@t.Email</td>
+                    <td>
+                        <a href="/tenants/edit/@t.Id" class="am-link">Edit</a>
+                        <span style="margin:0 4px;color:#dde4ff;">|</span>
+                        <span class="am-link" style="color:#c02020;" @onclick="() => ConfirmDelete(t)">Delete</span>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (tenantToDelete is not null)
+{
+    <div style="position:fixed;inset:0;background:rgba(30,42,74,0.3);display:flex;align-items:center;justify-content:center;z-index:999;">
+        <div class="am-card" style="max-width:380px;width:100%;margin:0;">
+            <div class="am-card-title" style="color:#c02020;">⚠️ Confirm Delete</div>
+            <p style="font-size:13px;color:#3a4a70;margin-bottom:16px;">Delete tenant <strong>@tenantToDelete.FullName</strong>?</p>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="am-btn am-btn-outline" @onclick="() => tenantToDelete = null">Cancel</button>
+                <button class="am-btn am-btn-danger" @onclick="DeleteConfirmed">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    List<Tenant>? all, filtered;
+    Tenant? tenantToDelete;
+    string searchText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        all = await TenantService.GetAllAsync();
+        ApplyFilter();
+    }
+
+    void ApplyFilter()
+    {
+        filtered = all ?? new();
+        if (!string.IsNullOrEmpty(searchText))
+            filtered = filtered.Where(t =>
+                t.FullName.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                t.Email.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                (t.NationalId != null && t.NationalId.Contains(searchText, StringComparison.OrdinalIgnoreCase))).ToList();
+    }
+
+    void ConfirmDelete(Tenant t) => tenantToDelete = t;
+    async Task DeleteConfirmed()
+    {
+        if (tenantToDelete is not null) { await TenantService.DeleteAsync(tenantToDelete.Id); all = await TenantService.GetAllAsync(); ApplyFilter(); tenantToDelete = null; }
+    }
+}

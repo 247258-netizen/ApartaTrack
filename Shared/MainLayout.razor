@@ -1,0 +1,14 @@
+@inherits LayoutComponentBase
+
+<NavMenu />
+
+<div class="am-content">
+    <GlobalErrorBoundary>
+        @Body
+    </GlobalErrorBoundary>
+</div>
+
+<div id="blazor-error-ui" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;min-width:300px;text-align:center;display:none;background:#fff0f0;border:1.5px solid #ffc8c8;color:#c02020;padding:12px 20px;border-radius:10px;font-size:13px;">
+    An unrecoverable error occurred. <a href="" style="color:#4a7fff;">Reload</a>
+    <a onclick="document.getElementById('blazor-error-ui').style.display='none'" style="margin-left:8px;cursor:pointer;color:#c02020;">✕</a>
+</div>

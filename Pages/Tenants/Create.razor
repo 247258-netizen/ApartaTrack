@@ -1,0 +1,58 @@
+@page "/tenants/create"
+@inject ITenantService TenantService
+@inject NavigationManager Nav
+@inject AuthService Auth
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>Add Tenant - ApartaManager</PageTitle>
+
+<a href="/tenants" class="am-back-link">← Back to Tenants</a>
+<div class="am-page-header">👤 Add Tenant</div>
+<div class="am-page-sub">Register a new tenant</div>
+
+<div class="am-form-card">
+    <EditForm Model="tenant" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="am-err-box" />
+
+        <label class="am-f-lbl">Full Name</label>
+        <InputText @bind-Value="tenant.FullName" class="am-f-inp" placeholder="e.g. Ahmed Khan" />
+
+        <label class="am-f-lbl">Email</label>
+        <InputText @bind-Value="tenant.Email" class="am-f-inp" placeholder="email@example.com" />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label class="am-f-lbl">Phone</label>
+                <InputText @bind-Value="tenant.Phone" class="am-f-inp" placeholder="03001234567" />
+            </div>
+            <div>
+                <label class="am-f-lbl">CNIC / National ID</label>
+                <InputText @bind-Value="tenant.NationalId" class="am-f-inp" placeholder="35202-1234567-1" />
+            </div>
+        </div>
+
+        <label class="am-f-lbl">Date of Birth</label>
+        <InputDate @bind-Value="tenant.DateOfBirth" class="am-f-inp" />
+
+        <label class="am-f-lbl">Emergency Contact</label>
+        <InputText @bind-Value="tenant.EmergencyContact" class="am-f-inp" placeholder="Name and phone" />
+
+        <button type="submit" class="am-btn am-btn-lg" disabled="@isSaving">
+            @(isSaving ? "Saving..." : "💾 Save Tenant")
+        </button>
+    </EditForm>
+</div>
+
+@code {
+    Tenant tenant = new();
+    bool isSaving = false;
+
+    async Task HandleSubmit()
+    {
+        isSaving = true;
+        await TenantService.CreateAsync(tenant);
+        Nav.NavigateTo("/tenants");
+    }
+}

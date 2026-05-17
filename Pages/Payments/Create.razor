@@ -1,0 +1,73 @@
+@page "/payments/create"
+@inject IPaymentService PaymentService
+@inject ILeaseService LeaseService
+@inject NavigationManager Nav
+@inject AuthService Auth
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>Record Payment - ApartaManager</PageTitle>
+
+<a href="/payments" class="am-back-link">← Back to Payments</a>
+<div class="am-page-header">💳 Record Payment</div>
+<div class="am-page-sub">Record a rent payment</div>
+
+<div class="am-form-card">
+    <EditForm Model="payment" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="am-err-box" />
+
+        <label class="am-f-lbl">Lease</label>
+        <InputSelect @bind-Value="payment.LeaseId" class="am-f-inp">
+            <option value="0">-- Select Lease --</option>
+            @foreach (var l in leases)
+            {
+                <option value="@l.Id">@l.Apartment?.UnitNumber — @l.Tenant?.FullName</option>
+            }
+        </InputSelect>
+
+        <label class="am-f-lbl">Amount (PKR)</label>
+        <InputNumber @bind-Value="payment.Amount" class="am-f-inp" placeholder="e.g. 25000" />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label class="am-f-lbl">Due Date</label>
+                <InputDate @bind-Value="payment.DueDate" class="am-f-inp" />
+            </div>
+            <div>
+                <label class="am-f-lbl">Paid Date</label>
+                <InputDate @bind-Value="payment.PaidDate" class="am-f-inp" />
+            </div>
+        </div>
+
+        <label class="am-f-lbl">Status</label>
+        <InputSelect @bind-Value="payment.Status" class="am-f-inp">
+            <option value="@PaymentStatus.Pending">Pending</option>
+            <option value="@PaymentStatus.Paid">Paid</option>
+            <option value="@PaymentStatus.Late">Late / Overdue</option>
+        </InputSelect>
+
+        <label class="am-f-lbl">Notes</label>
+        <InputTextArea @bind-Value="payment.Notes" class="am-f-inp" rows="2" style="resize:vertical;" />
+
+        <button type="submit" class="am-btn am-btn-lg" disabled="@isSaving">
+            @(isSaving ? "Saving..." : "💾 Record Payment")
+        </button>
+    </EditForm>
+</div>
+
+@code {
+    Payment payment = new() { DueDate = DateTime.Today, Status = PaymentStatus.Pending };
+    List<Lease> leases = new();
+    bool isSaving = false;
+
+    protected override async Task OnInitializedAsync() =>
+        leases = await LeaseService.GetAllAsync();
+
+    async Task HandleSubmit()
+    {
+        isSaving = true;
+        await PaymentService.CreateAsync(payment);
+        Nav.NavigateTo("/payments");
+    }
+}

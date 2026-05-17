@@ -1,0 +1,64 @@
+@page "/login"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Login - ApartaManager</PageTitle>
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f4ff;">
+  <div class="am-login-wrap" style="width:600px;max-width:95vw;">
+    <div class="am-login-left">
+      <div class="am-ll-ico">🏘️</div>
+      <div class="am-ll-name">ApartaManager</div>
+      <div class="am-ll-tag">Property management made easy</div>
+      <div class="am-ll-stats">
+        <div class="am-ll-stat">🏠 Manage apartments</div>
+        <div class="am-ll-stat">👥 Track tenants</div>
+        <div class="am-ll-stat">📋 Manage leases</div>
+        <div class="am-ll-stat">💳 Record payments</div>
+        <div class="am-ll-stat">🔧 Maintenance</div>
+      </div>
+    </div>
+    <div class="am-login-right">
+      <div class="am-lr-title">Welcome back!</div>
+      <div class="am-lr-sub">Sign in to your dashboard</div>
+      @if (!string.IsNullOrEmpty(msg))
+      {
+        <div class="am-err-box">@msg</div>
+      }
+      <label class="am-f-lbl">Username</label>
+      <input class="am-f-inp" type="text" placeholder="Enter username" 
+             @oninput="e => username = e.Value?.ToString() ?? string.Empty" />
+      <label class="am-f-lbl">Password</label>
+      <input class="am-f-inp" type="password" placeholder="Enter password"
+             @oninput="e => password = e.Value?.ToString() ?? string.Empty" />
+      <button class="am-login-btn" @onclick="HandleLogin">Login →</button>
+      <div class="am-hint-txt">Default: admin / Admin@123</div>
+    </div>
+  </div>
+</div>
+
+@code {
+    string username = "";
+    string password = "";
+    string msg = "";
+
+    protected override void OnInitialized()
+    {
+        if (Auth.IsLoggedIn) Nav.NavigateTo("/");
+    }
+
+    async Task HandleLogin()
+    {
+        msg = "";
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            msg = "Username aur password likhein.";
+            return;
+        }
+        bool ok = await Auth.LoginAsync(username.Trim(), password.Trim());
+        if (ok)
+            Nav.NavigateTo("/");
+        else
+            msg = "Galat username ya password!";
+    }
+}

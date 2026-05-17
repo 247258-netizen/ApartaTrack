@@ -1,0 +1,77 @@
+@page "/notifications"
+@inject INotificationService NotifSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Notifications - ApartaManager</PageTitle>
+@if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+
+<div class="am-page-header">🔔 Notifications</div>
+<div class="am-page-sub">Alerts and system notifications</div>
+
+<div class="am-card">
+    <div class="am-card-title">
+        All Notifications
+        <div style="display:flex;gap:6px;">
+            <span class="am-link" @onclick="GenerateAlerts">🔄 Generate Alerts</span>
+            <span class="am-link" @onclick="MarkAllRead">✅ Mark all read</span>
+        </div>
+    </div>
+
+    @if (notifications == null)
+    {
+        <div class="am-spinner">Loading...</div>
+    }
+    else if (!notifications.Any())
+    {
+        <p style="color:#1a7a4a;font-size:13px;">✅ No notifications — everything is up to date!</p>
+    }
+    else
+    {
+        @foreach (var n in notifications)
+        {
+            <div class="am-notif" style="@(!n.IsRead ? "border-left:3px solid #4a7fff;padding-left:10px;" : "")">
+                <div class="am-notif-ico">@NotifEmoji(n.Type)</div>
+                <div style="flex:1;">
+                    <div class="am-notif-txt"><strong style="color:@(!n.IsRead ? "#2d4aaa" : "#3a4a70");">@n.Title</strong></div>
+                    <div class="am-notif-txt">@n.Message</div>
+                    <div class="am-notif-time">@n.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:flex-start;">
+                    @if (!n.IsRead)
+                    {
+                        <span class="am-link" @onclick="() => MarkRead(n.Id)">✓</span>
+                    }
+                    <span class="am-link" style="color:#c02020;" @onclick="() => Delete(n.Id)">✕</span>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    List<Notification>? notifications;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        await Load();
+    }
+
+    async Task Load() => notifications = await NotifSvc.GetAllAsync();
+    async Task MarkRead(int id)  { await NotifSvc.MarkReadAsync(id);     await Load(); }
+    async Task MarkAllRead()     { await NotifSvc.MarkAllReadAsync();    await Load(); }
+    async Task Delete(int id)    { await NotifSvc.DeleteAsync(id);       await Load(); }
+    async Task GenerateAlerts()  { await NotifSvc.GenerateAlertsAsync(); await Load(); }
+
+    string NotifEmoji(NotificationType t) => t switch
+    {
+        NotificationType.PaymentOverdue    => "⚠️",
+        NotificationType.PaymentDue        => "💳",
+        NotificationType.LeaseExpiring     => "📋",
+        NotificationType.LeaseExpired      => "❌",
+        NotificationType.MaintenanceUpdate => "🔧",
+        _                                  => "🔔"
+    };
+}

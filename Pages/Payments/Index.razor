@@ -1,0 +1,92 @@
+@page "/payments"
+@inject IPaymentService PaymentService
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>Payments - ApartaManager</PageTitle>
+
+<div class="am-page-header">💳 Payments</div>
+<div class="am-page-sub">Record and track rent payments</div>
+
+<div class="am-card">
+    <div class="am-card-title">
+        All Payments
+        <a href="/payments/create" class="am-btn">+ Record Payment</a>
+    </div>
+
+    @if (payments is null)
+    {
+        <div class="am-spinner">Loading...</div>
+    }
+    else if (!payments.Any())
+    {
+        <p style="color:#8a9ac0;font-size:13px;">No payments found. <a href="/payments/create" class="am-link">Record one!</a></p>
+    }
+    else
+    {
+        <table class="am-tbl">
+            <thead><tr><th>Tenant</th><th>Unit</th><th>Amount</th><th>Due Date</th><th>Paid Date</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var p in payments)
+            {
+                <tr>
+                    <td><strong>@p.Lease?.Tenant?.FullName</strong></td>
+                    <td>@p.Lease?.Apartment?.UnitNumber</td>
+                    <td>PKR @p.Amount.ToString("N0")</td>
+                    <td>@p.DueDate.ToString("dd/MM/yyyy")</td>
+                    <td>@(p.PaidDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                    <td>
+                        @switch (p.Status)
+                        {
+                            case PaymentStatus.Paid:
+                                <span class="am-bdg am-bdg-g">Paid</span>
+                                break;
+                            case PaymentStatus.Pending:
+                                <span class="am-bdg am-bdg-a">Pending</span>
+                                break;
+                            case PaymentStatus.Late:
+                                <span class="am-bdg am-bdg-r">Overdue</span>
+                                break;
+                            default:
+                                <span class="am-bdg am-bdg-b">@p.Status</span>
+                                break;
+                        }
+                    </td>
+                    <td>
+                        <span class="am-link" style="color:#c02020;" @onclick="() => ConfirmDelete(p)">Delete</span>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (toDelete is not null)
+{
+    <div style="position:fixed;inset:0;background:rgba(30,42,74,0.3);display:flex;align-items:center;justify-content:center;z-index:999;">
+        <div class="am-card" style="max-width:380px;width:100%;margin:0;">
+            <div class="am-card-title" style="color:#c02020;">⚠️ Confirm Delete</div>
+            <p style="font-size:13px;color:#3a4a70;margin-bottom:16px;">Delete payment of PKR <strong>@toDelete.Amount.ToString("N0")</strong>?</p>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="am-btn am-btn-outline" @onclick="() => toDelete = null">Cancel</button>
+                <button class="am-btn am-btn-danger" @onclick="DeleteConfirmed">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    List<Payment>? payments;
+    Payment? toDelete;
+
+    protected override async Task OnInitializedAsync() =>
+        payments = await PaymentService.GetAllAsync();
+
+    void ConfirmDelete(Payment p) => toDelete = p;
+
+    async Task DeleteConfirmed()
+    {
+        if (toDelete is not null) { await PaymentService.DeleteAsync(toDelete.Id); payments = await PaymentService.GetAllAsync(); toDelete = null; }
+    }
+}

@@ -1,0 +1,66 @@
+@page "/apartments/create"
+@inject IApartmentService ApartmentService
+@inject NavigationManager Nav
+@inject AuthService Auth
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>Add Apartment - ApartaManager</PageTitle>
+
+<a href="/apartments" class="am-back-link">← Back to Apartments</a>
+<div class="am-page-header">🏠 Add Apartment</div>
+<div class="am-page-sub">Add a new apartment unit</div>
+
+<div class="am-form-card">
+    <EditForm Model="apartment" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="am-err-box" />
+
+        <label class="am-f-lbl">Unit Number</label>
+        <InputText @bind-Value="apartment.UnitNumber" class="am-f-inp" placeholder="e.g. A-101" />
+        <ValidationMessage For="@(() => apartment.UnitNumber)" style="color:#c02020;font-size:11px;" />
+
+        <label class="am-f-lbl">Address</label>
+        <InputText @bind-Value="apartment.Address" class="am-f-inp" placeholder="e.g. Gulberg III, Lahore" />
+        <ValidationMessage For="@(() => apartment.Address)" style="color:#c02020;font-size:11px;" />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label class="am-f-lbl">Bedrooms</label>
+                <InputNumber @bind-Value="apartment.Bedrooms" class="am-f-inp" />
+            </div>
+            <div>
+                <label class="am-f-lbl">Bathrooms</label>
+                <InputNumber @bind-Value="apartment.Bathrooms" class="am-f-inp" />
+            </div>
+        </div>
+
+        <label class="am-f-lbl">Monthly Rent (PKR)</label>
+        <InputNumber @bind-Value="apartment.MonthlyRent" class="am-f-inp" placeholder="e.g. 35000" />
+        <ValidationMessage For="@(() => apartment.MonthlyRent)" style="color:#c02020;font-size:11px;" />
+
+        <label class="am-f-lbl">Description</label>
+        <InputTextArea @bind-Value="apartment.Description" class="am-f-inp" rows="3" style="resize:vertical;" />
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <InputCheckbox @bind-Value="apartment.IsAvailable" id="isAvail" style="width:16px;height:16px;accent-color:#4a7fff;" />
+            <label for="isAvail" style="font-size:12px;color:#4a60a0;font-weight:500;cursor:pointer;">Mark as Available</label>
+        </div>
+
+        <button type="submit" class="am-btn am-btn-lg" disabled="@isSaving">
+            @(isSaving ? "Saving..." : "💾 Save Apartment")
+        </button>
+    </EditForm>
+</div>
+
+@code {
+    Apartment apartment = new() { IsAvailable = true };
+    bool isSaving = false;
+
+    async Task HandleSubmit()
+    {
+        isSaving = true;
+        await ApartmentService.CreateAsync(apartment);
+        Nav.NavigateTo("/apartments");
+    }
+}

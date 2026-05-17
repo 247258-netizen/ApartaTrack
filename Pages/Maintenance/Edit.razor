@@ -1,0 +1,77 @@
+@page "/maintenance/edit/{Id:int}"
+@inject IMaintenanceService MaintenanceSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Edit Maintenance - ApartaManager</PageTitle>
+
+<a href="/maintenance" class="am-back-link">← Back to Maintenance</a>
+<div class="am-page-header">✏️ Edit Maintenance Request</div>
+<div class="am-page-sub">Update request details and status</div>
+
+@if (request is null)
+{
+    <div class="am-spinner">Loading...</div>
+}
+else
+{
+    <div class="am-form-card">
+        <EditForm Model="request" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="am-err-box" />
+
+            <label class="am-f-lbl">Issue Title</label>
+            <InputText @bind-Value="request.Title" class="am-f-inp" />
+
+            <label class="am-f-lbl">Description</label>
+            <InputTextArea @bind-Value="request.Description" class="am-f-inp" rows="3" style="resize:vertical;" />
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label class="am-f-lbl">Priority</label>
+                    <InputSelect @bind-Value="request.Priority" class="am-f-inp">
+                        @foreach (var p in Enum.GetValues<MaintenancePriority>())
+                        { <option value="@p">@p</option> }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="am-f-lbl">Status</label>
+                    <InputSelect @bind-Value="request.Status" class="am-f-inp">
+                        @foreach (var s in Enum.GetValues<MaintenanceStatus>())
+                        { <option value="@s">@s</option> }
+                    </InputSelect>
+                </div>
+            </div>
+
+            <label class="am-f-lbl">Estimated Cost (PKR)</label>
+            <InputNumber @bind-Value="request.EstimatedCost" class="am-f-inp" />
+
+            <label class="am-f-lbl">Notes</label>
+            <InputTextArea @bind-Value="request.Notes" class="am-f-inp" rows="2" style="resize:vertical;" />
+
+            <button type="submit" class="am-btn am-btn-lg" disabled="@isSaving">
+                @(isSaving ? "Updating..." : "💾 Update Request")
+            </button>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    MaintenanceRequest? request;
+    bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        request = await MaintenanceSvc.GetByIdAsync(Id);
+    }
+
+    async Task HandleSubmit()
+    {
+        isSaving = true;
+        await MaintenanceSvc.UpdateAsync(request!);
+        Nav.NavigateTo("/maintenance");
+    }
+}

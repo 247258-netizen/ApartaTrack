@@ -1,0 +1,115 @@
+@page "/apartments"
+@inject IApartmentService ApartmentService
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Apartments - ApartaManager</PageTitle>
+@if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+
+<div class="am-page-header">🏠 Apartments</div>
+<div class="am-page-sub">Manage all apartment units</div>
+
+<div class="am-card">
+    <div class="am-card-title">
+        All Apartments
+        <a href="/apartments/create" class="am-btn">+ Add Apartment</a>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input @bind="searchText" @bind:after="ApplyFilter" class="am-f-inp" style="margin-bottom:0;flex:2;" placeholder="Search unit or address..." />
+        <select @bind="availFilter" @bind:after="ApplyFilter" class="am-f-inp" style="margin-bottom:0;flex:1;">
+            <option value="">All Status</option>
+            <option value="true">Available</option>
+            <option value="false">Occupied</option>
+        </select>
+        <select @bind="bedsFilter" @bind:after="ApplyFilter" class="am-f-inp" style="margin-bottom:0;flex:1;">
+            <option value="0">All Beds</option>
+            <option value="1">1 Bed</option>
+            <option value="2">2 Beds</option>
+            <option value="3">3 Beds</option>
+        </select>
+    </div>
+
+    @if (filtered == null)
+    {
+        <div class="am-spinner">Loading...</div>
+    }
+    else if (!filtered.Any())
+    {
+        <p style="color:#8a9ac0;font-size:13px;">No apartments found.</p>
+    }
+    else
+    {
+        <table class="am-tbl">
+            <thead><tr><th>Unit</th><th>Address</th><th>Beds</th><th>Baths</th><th>Rent/Month</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var apt in filtered)
+            {
+                <tr>
+                    <td><strong>@apt.UnitNumber</strong></td>
+                    <td>@apt.Address</td>
+                    <td>@apt.Bedrooms</td>
+                    <td>@apt.Bathrooms</td>
+                    <td>PKR @apt.MonthlyRent.ToString("N0")</td>
+                    <td>
+                        @if (apt.IsAvailable) { <span class="am-bdg am-bdg-b">Available</span> }
+                        else { <span class="am-bdg am-bdg-g">Occupied</span> }
+                    </td>
+                    <td>
+                        <a href="/apartments/edit/@apt.Id" class="am-link">Edit</a>
+                        <span style="margin:0 4px;color:#dde4ff;">|</span>
+                        <span class="am-link" style="color:#c02020;" @onclick="() => ConfirmDelete(apt)">Delete</span>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (aptToDelete is not null)
+{
+    <div style="position:fixed;inset:0;background:rgba(30,42,74,0.3);display:flex;align-items:center;justify-content:center;z-index:999;">
+        <div class="am-card" style="max-width:380px;width:100%;margin:0;">
+            <div class="am-card-title" style="color:#c02020;">⚠️ Confirm Delete</div>
+            <p style="font-size:13px;color:#3a4a70;margin-bottom:16px;">Delete apartment <strong>@aptToDelete.UnitNumber</strong>? This cannot be undone.</p>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="am-btn am-btn-outline" @onclick="() => aptToDelete = null">Cancel</button>
+                <button class="am-btn am-btn-danger" @onclick="DeleteConfirmed">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    List<Apartment>? all, filtered;
+    Apartment? aptToDelete;
+    string searchText = "", availFilter = "";
+    int bedsFilter = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        all = await ApartmentService.GetAllAsync();
+        ApplyFilter();
+    }
+
+    void ApplyFilter()
+    {
+        filtered = all ?? new();
+        if (!string.IsNullOrEmpty(searchText))
+            filtered = filtered.Where(a =>
+                a.UnitNumber.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                a.Address.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (!string.IsNullOrEmpty(availFilter))
+            filtered = filtered.Where(a => a.IsAvailable == bool.Parse(availFilter)).ToList();
+        if (bedsFilter > 0)
+            filtered = filtered.Where(a => a.Bedrooms == bedsFilter).ToList();
+    }
+
+    void ConfirmDelete(Apartment apt) => aptToDelete = apt;
+    async Task DeleteConfirmed()
+    {
+        if (aptToDelete is not null) { await ApartmentService.DeleteAsync(aptToDelete.Id); all = await ApartmentService.GetAllAsync(); ApplyFilter(); aptToDelete = null; }
+    }
+}

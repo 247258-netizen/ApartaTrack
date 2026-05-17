@@ -1,0 +1,112 @@
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Logging
+@inject ILogger<GlobalErrorBoundary> Logger
+
+<ErrorBoundary @ref="_errorBoundary">
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <div class="error-boundary-container">
+            <div class="error-boundary-card">
+                <div class="error-icon">⚠️</div>
+                <h3 class="error-title">Kuch Masla Aa Gaya</h3>
+                <p class="error-subtitle">Something went wrong. Please try again.</p>
+
+                @if (_showDetails && ex is not null)
+                {
+                    <div class="error-details">
+                        <strong>Error:</strong> @ex.Message
+                        @if (ex.InnerException is not null)
+                        {
+                            <br /><strong>Details:</strong> @ex.InnerException.Message
+                        }
+                    </div>
+                }
+
+                <div class="error-actions">
+                    <button class="btn btn-primary btn-sm me-2" @onclick="Recover">
+                        🔄 Try Again
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm me-2"
+                            @onclick="() => _showDetails = !_showDetails">
+                        🔍 @(_showDetails ? "Hide" : "Show") Details
+                    </button>
+                    <a href="/" class="btn btn-outline-primary btn-sm">
+                        🏠 Go Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </ErrorContent>
+</ErrorBoundary>
+
+<style>
+    .error-boundary-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        padding: 2rem;
+    }
+
+    .error-boundary-card {
+        background: #fff;
+        border: 1px solid #f5c6cb;
+        border-radius: 12px;
+        padding: 2rem 2.5rem;
+        max-width: 520px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .error-icon {
+        font-size: 3rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .error-title {
+        color: #721c24;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+    }
+
+    .error-subtitle {
+        color: #6c757d;
+        margin-bottom: 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .error-details {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        font-size: 0.82rem;
+        color: #721c24;
+        text-align: left;
+        margin-bottom: 1.25rem;
+        word-break: break-word;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+</style>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private ErrorBoundary? _errorBoundary;
+    private bool           _showDetails = false;
+
+    private void Recover()
+    {
+        _showDetails = false;
+        _errorBoundary?.Recover();
+    }
+}

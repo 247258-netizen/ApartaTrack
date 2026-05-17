@@ -1,0 +1,87 @@
+@page "/leases/create"
+@inject ILeaseService LeaseService
+@inject IApartmentService ApartmentService
+@inject ITenantService TenantService
+@inject NavigationManager Nav
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>New Lease - ApartaManager</PageTitle>
+
+<a href="/leases" class="am-back-link">← Back to Leases</a>
+<div class="am-page-header">📋 New Lease</div>
+<div class="am-page-sub">Create a new lease agreement</div>
+
+<div class="am-form-card">
+    <EditForm Model="lease" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="am-err-box" />
+
+        <label class="am-f-lbl">Apartment</label>
+        <InputSelect @bind-Value="lease.ApartmentId" class="am-f-inp">
+            <option value="0">-- Select Apartment --</option>
+            @foreach (var a in apartments)
+            {
+                <option value="@a.Id">@a.UnitNumber — @a.Address</option>
+            }
+        </InputSelect>
+
+        <label class="am-f-lbl">Tenant</label>
+        <InputSelect @bind-Value="lease.TenantId" class="am-f-inp">
+            <option value="0">-- Select Tenant --</option>
+            @foreach (var t in tenants)
+            {
+                <option value="@t.Id">@t.FullName</option>
+            }
+        </InputSelect>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label class="am-f-lbl">Start Date</label>
+                <InputDate @bind-Value="lease.StartDate" class="am-f-inp" />
+            </div>
+            <div>
+                <label class="am-f-lbl">End Date</label>
+                <InputDate @bind-Value="lease.EndDate" class="am-f-inp" />
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label class="am-f-lbl">Monthly Rent (PKR)</label>
+                <InputNumber @bind-Value="lease.MonthlyRent" class="am-f-inp" />
+            </div>
+            <div>
+                <label class="am-f-lbl">Security Deposit (PKR)</label>
+                <InputNumber @bind-Value="lease.SecurityDeposit" class="am-f-inp" />
+            </div>
+        </div>
+
+        <label class="am-f-lbl">Notes</label>
+        <InputTextArea @bind-Value="lease.Notes" class="am-f-inp" rows="2" style="resize:vertical;" />
+
+        <button type="submit" class="am-btn am-btn-lg" disabled="@isSaving">
+            @(isSaving ? "Saving..." : "💾 Create Lease")
+        </button>
+    </EditForm>
+</div>
+
+@code {
+    Lease lease = new() { StartDate = DateTime.Today, EndDate = DateTime.Today.AddYears(1) };
+    List<Apartment> apartments = new();
+    List<Tenant> tenants = new();
+    bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apartments = await ApartmentService.GetAvailableAsync();
+        tenants = await TenantService.GetAllAsync();
+    }
+
+    async Task HandleSubmit()
+    {
+        isSaving = true;
+        await LeaseService.CreateAsync(lease);
+        Nav.NavigateTo("/leases");
+    }
+}

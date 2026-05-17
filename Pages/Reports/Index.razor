@@ -1,0 +1,132 @@
+@page "/reports"
+@inject ReportService ReportSvc
+@inject IPaymentService PaymentSvc
+@inject ILeaseService LeaseSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Reports - ApartaManager</PageTitle>
+@if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+
+<div class="am-page-header">📈 Reports & Analytics</div>
+<div class="am-page-sub">Financial and occupancy analytics</div>
+
+@if (isLoading)
+{
+    <div class="am-spinner">Loading...</div>
+}
+else
+{
+    <div class="am-stats" style="margin-bottom:14px;">
+        <div class="am-stat"><div class="am-stat-ico">💰</div><div><div class="am-stat-lbl">Total Revenue</div><div class="am-stat-val" style="font-size:14px;color:#1a7a4a;">PKR @totalRevenue.ToString("N0")</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">⏳</div><div><div class="am-stat-lbl">Pending Amount</div><div class="am-stat-val" style="font-size:14px;color:#b06000;">PKR @pendingAmount.ToString("N0")</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">🏠</div><div><div class="am-stat-lbl">Occupancy Rate</div><div class="am-stat-val">@occupancyRate%</div></div></div>
+        <div class="am-stat"><div class="am-stat-ico">📋</div><div><div class="am-stat-lbl">Active Leases</div><div class="am-stat-val">@activeLeases</div></div></div>
+    </div>
+
+    <div class="am-card2">
+        <div class="am-card">
+            <div class="am-card-title">Monthly Revenue (@selectedYear)</div>
+            <div class="am-chart">
+                @foreach (var m in monthlyData)
+                {
+                    var maxVal = monthlyData.Max(x => x.TotalCollected);
+                    var h = maxVal > 0 ? (int)(m.TotalCollected / maxVal * 70) + 5 : 5;
+                    var isCurrentMonth = m.Month == DateTime.Now.ToString("MMM");
+                    <div class="am-bar-wrap">
+                        <div class="am-bar" style="height:@(h)px;background:@(isCurrentMonth ? "#4a7fff" : "#a0b4ff");"></div>
+                        <div class="am-bar-lbl">@m.Month</div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="am-card">
+            <div class="am-card-title">Payment Status</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="background:#e8faf0;border-radius:8px;padding:12px;text-align:center;border:1px solid #b0e4c8;">
+                    <div style="font-size:22px;font-weight:700;color:#1a7a4a;">@paidCount</div>
+                    <div style="font-size:10px;color:#8a9ac0;">Paid</div>
+                </div>
+                <div style="background:#fff8e8;border-radius:8px;padding:12px;text-align:center;border:1px solid #f0d890;">
+                    <div style="font-size:22px;font-weight:700;color:#b06000;">@pendingCount</div>
+                    <div style="font-size:10px;color:#8a9ac0;">Pending</div>
+                </div>
+                <div style="background:#fff0f0;border-radius:8px;padding:12px;text-align:center;border:1px solid #f8b8b8;">
+                    <div style="font-size:22px;font-weight:700;color:#c02020;">@lateCount</div>
+                    <div style="font-size:10px;color:#8a9ac0;">Overdue</div>
+                </div>
+                <div style="background:#eef4ff;border-radius:8px;padding:12px;text-align:center;border:1px solid #c8d8ff;">
+                    <div style="font-size:22px;font-weight:700;color:#2d4aaa;">@cancelledCount</div>
+                    <div style="font-size:10px;color:#8a9ac0;">Cancelled</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (expiringLeases.Any())
+    {
+        <div class="am-card">
+            <div class="am-card-title">⚠️ Leases Expiring in 30 Days</div>
+            <table class="am-tbl">
+                <thead><tr><th>Unit</th><th>Tenant</th><th>End Date</th></tr></thead>
+                <tbody>
+                @foreach (var l in expiringLeases)
+                {
+                    <tr>
+                        <td><strong>@l.Apartment?.UnitNumber</strong></td>
+                        <td>@l.Tenant?.FullName</td>
+                        <td style="color:#c02020;">@l.EndDate.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="am-card">
+        <div class="am-card-title">Export CSV Reports</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="/export/payments" target="_blank" class="am-btn">💳 Payments</a>
+            <a href="/export/tenants" target="_blank" class="am-btn">👥 Tenants</a>
+            <a href="/export/maintenance" target="_blank" class="am-btn">🔧 Maintenance</a>
+            <a href="/export/revenue/@selectedYear" target="_blank" class="am-btn">📊 Revenue @selectedYear</a>
+        </div>
+    </div>
+}
+
+@code {
+    bool isLoading = true;
+    int selectedYear = DateTime.Now.Year;
+    decimal totalRevenue, pendingAmount;
+    int occupancyRate, activeLeases;
+    int paidCount, pendingCount, lateCount, cancelledCount;
+    List<MonthlyReport> monthlyData = new();
+    List<Lease> expiringLeases = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        totalRevenue  = await ReportSvc.GetTotalRevenueAsync();
+        pendingAmount = await ReportSvc.GetPendingAmountAsync();
+        occupancyRate = await ReportSvc.GetOccupancyRateAsync();
+        activeLeases  = await LeaseSvc.GetTotalCountAsync();
+
+        var allPayments = await PaymentSvc.GetAllAsync();
+        paidCount      = allPayments.Count(p => p.Status == PaymentStatus.Paid);
+        pendingCount   = allPayments.Count(p => p.Status == PaymentStatus.Pending);
+        lateCount      = allPayments.Count(p => p.Status == PaymentStatus.Late);
+        cancelledCount = allPayments.Count(p => p.Status == PaymentStatus.Cancelled);
+
+        var allLeases = await LeaseSvc.GetAllAsync();
+        expiringLeases = allLeases
+            .Where(l => l.IsActive && l.EndDate >= DateTime.Today && l.EndDate <= DateTime.Today.AddDays(30))
+            .ToList();
+
+        await LoadMonthly();
+        isLoading = false;
+    }
+
+    async Task LoadMonthly() =>
+        monthlyData = await ReportSvc.GetMonthlyRevenueAsync(selectedYear);
+}

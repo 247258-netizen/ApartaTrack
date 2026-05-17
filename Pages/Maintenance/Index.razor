@@ -1,0 +1,118 @@
+@page "/maintenance"
+@inject IMaintenanceService MaintenanceSvc
+@inject IApartmentService ApartmentSvc
+@inject ITenantService TenantSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+@using ApartaTrack.Models
+
+<PageTitle>Maintenance - ApartaManager</PageTitle>
+@if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+
+<div class="am-page-header">🔧 Maintenance</div>
+<div class="am-page-sub">Track maintenance requests and repairs</div>
+
+<div class="am-card">
+    <div class="am-card-title">
+        Maintenance Requests
+        <a href="/maintenance/create" class="am-btn">+ New Request</a>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <select @bind="statusFilter" @bind:after="ApplyFilter" class="am-f-inp" style="margin-bottom:0;flex:1;">
+            <option value="">All Statuses</option>
+            @foreach (var s in Enum.GetValues<MaintenanceStatus>())
+            { <option value="@s">@s</option> }
+        </select>
+        <select @bind="priorityFilter" @bind:after="ApplyFilter" class="am-f-inp" style="margin-bottom:0;flex:1;">
+            <option value="">All Priorities</option>
+            @foreach (var p in Enum.GetValues<MaintenancePriority>())
+            { <option value="@p">@p</option> }
+        </select>
+        <input @bind="searchText" @bind:after="ApplyFilter" class="am-f-inp" style="margin-bottom:0;flex:2;" placeholder="Search title..." />
+    </div>
+
+    @if (filtered == null)
+    {
+        <div class="am-spinner">Loading...</div>
+    }
+    else if (!filtered.Any())
+    {
+        <p style="color:#8a9ac0;font-size:13px;">No maintenance requests found.</p>
+    }
+    else
+    {
+        <table class="am-tbl">
+            <thead><tr><th>Title</th><th>Unit</th><th>Tenant</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var m in filtered)
+            {
+                <tr>
+                    <td><strong>@m.Title</strong></td>
+                    <td>@m.Apartment?.UnitNumber</td>
+                    <td>@(m.Tenant?.FullName ?? "—")</td>
+                    <td>
+                        @switch (m.Priority)
+                        {
+                            case MaintenancePriority.Urgent:
+                            case MaintenancePriority.High:
+                                <span class="am-bdg am-bdg-r">@m.Priority</span>
+                                break;
+                            case MaintenancePriority.Medium:
+                                <span class="am-bdg am-bdg-a">@m.Priority</span>
+                                break;
+                            default:
+                                <span class="am-bdg am-bdg-g">@m.Priority</span>
+                                break;
+                        }
+                    </td>
+                    <td>
+                        @switch (m.Status)
+                        {
+                            case MaintenanceStatus.Completed:
+                                <span class="am-bdg am-bdg-g">Resolved</span>
+                                break;
+                            case MaintenanceStatus.InProgress:
+                                <span class="am-bdg am-bdg-a">In Progress</span>
+                                break;
+                            default:
+                                <span class="am-bdg am-bdg-b">Pending</span>
+                                break;
+                        }
+                    </td>
+                    <td>@m.RequestDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a href="/maintenance/edit/@m.Id" class="am-link">Edit</a>
+                        <span style="margin:0 4px;color:#dde4ff;">|</span>
+                        <span class="am-link" style="color:#c02020;" @onclick="() => Delete(m.Id)">Delete</span>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    List<MaintenanceRequest>? all, filtered;
+    string statusFilter = "", priorityFilter = "", searchText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        all = await MaintenanceSvc.GetAllAsync();
+        ApplyFilter();
+    }
+
+    void ApplyFilter()
+    {
+        filtered = all ?? new();
+        if (!string.IsNullOrEmpty(statusFilter) && Enum.TryParse<MaintenanceStatus>(statusFilter, out var s))
+            filtered = filtered.Where(m => m.Status == s).ToList();
+        if (!string.IsNullOrEmpty(priorityFilter) && Enum.TryParse<MaintenancePriority>(priorityFilter, out var p))
+            filtered = filtered.Where(m => m.Priority == p).ToList();
+        if (!string.IsNullOrEmpty(searchText))
+            filtered = filtered.Where(m => m.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    async Task Delete(int id) { await MaintenanceSvc.DeleteAsync(id); all = await MaintenanceSvc.GetAllAsync(); ApplyFilter(); }
+}

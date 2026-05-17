@@ -1,0 +1,69 @@
+@page "/tenants/edit/{Id:int}"
+@inject ITenantService TenantService
+@inject NavigationManager Nav
+@inject AuthService Auth
+@using ApartaTrack.Services
+@using ApartaTrack.Models
+
+<PageTitle>Edit Tenant - ApartaManager</PageTitle>
+
+<a href="/tenants" class="am-back-link">← Back to Tenants</a>
+<div class="am-page-header">✏️ Edit Tenant</div>
+<div class="am-page-sub">Update tenant information</div>
+
+@if (tenant is null)
+{
+    <div class="am-spinner">Loading...</div>
+}
+else
+{
+    <div class="am-form-card">
+        <EditForm Model="tenant" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="am-err-box" />
+
+            <label class="am-f-lbl">Full Name</label>
+            <InputText @bind-Value="tenant.FullName" class="am-f-inp" />
+
+            <label class="am-f-lbl">Email</label>
+            <InputText @bind-Value="tenant.Email" class="am-f-inp" />
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label class="am-f-lbl">Phone</label>
+                    <InputText @bind-Value="tenant.Phone" class="am-f-inp" />
+                </div>
+                <div>
+                    <label class="am-f-lbl">CNIC / National ID</label>
+                    <InputText @bind-Value="tenant.NationalId" class="am-f-inp" />
+                </div>
+            </div>
+
+            <label class="am-f-lbl">Date of Birth</label>
+            <InputDate @bind-Value="tenant.DateOfBirth" class="am-f-inp" />
+
+            <label class="am-f-lbl">Emergency Contact</label>
+            <InputText @bind-Value="tenant.EmergencyContact" class="am-f-inp" />
+
+            <button type="submit" class="am-btn am-btn-lg" disabled="@isSaving">
+                @(isSaving ? "Updating..." : "💾 Update Tenant")
+            </button>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    Tenant? tenant;
+    bool isSaving = false;
+
+    protected override async Task OnInitializedAsync() =>
+        tenant = await TenantService.GetByIdAsync(Id);
+
+    async Task HandleSubmit()
+    {
+        isSaving = true;
+        await TenantService.UpdateAsync(tenant!);
+        Nav.NavigateTo("/tenants");
+    }
+}

@@ -1,0 +1,135 @@
+is_global = true
+build_property.TargetFramework = net10.0
+build_property.TargetFramework = net10.0
+build_property.TargetPlatformMinVersion = 
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.RootNamespace = ApartaTrack
+build_property.RootNamespace = ApartaTrack
+build_property.ProjectDir = D:\Downloads\ApartaManager\ApartaTrack\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 9.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = D:\Downloads\ApartaManager\ApartaTrack
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 10.0
+build_property.EnableCodeStyleSeverity = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Apartments/Create.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBhcnRtZW50c1xDcmVhdGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Apartments/Edit.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBhcnRtZW50c1xFZGl0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Apartments/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBhcnRtZW50c1xJbmRleC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Auth/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxMb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Auth/Users.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxVc2Vycy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Leases/Create.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGVhc2VzXENyZWF0ZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Leases/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGVhc2VzXEluZGV4LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Maintenance/Create.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTWFpbnRlbmFuY2VcQ3JlYXRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Maintenance/Edit.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTWFpbnRlbmFuY2VcRWRpdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Maintenance/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTWFpbnRlbmFuY2VcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Notifications/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTm90aWZpY2F0aW9uc1xJbmRleC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Payments/Create.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGF5bWVudHNcQ3JlYXRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Payments/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGF5bWVudHNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Reports/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwb3J0c1xJbmRleC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Tenants/Create.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGVuYW50c1xDcmVhdGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Tenants/Edit.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGVuYW50c1xFZGl0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Tenants/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGVuYW50c1xJbmRleC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/Unauthorized.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVW5hdXRob3JpemVkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Shared/GlobalErrorBoundary.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEdsb2JhbEVycm9yQm91bmRhcnkucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/_Host.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0hvc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Downloads/ApartaManager/ApartaTrack/Pages/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0xheW91dC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
